@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+*.egg
+.eggs/
+
+# Logs
+*.log
+logs/
+
+# AWS
+.aws/
+*.pem
+
+# SageMaker
+sagemaker/model/
+sagemaker/output/
+
+# Database
+*.db
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+htmlcov/
+.coverage
+coverage.xml

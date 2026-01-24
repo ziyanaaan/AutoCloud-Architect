@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AutoCloud Architect - Storage Resources'
+
+Parameters:
+  AppName:
+    Type: String
+  StorageClass:
+    Type: String
+    Default: STANDARD
+    AllowedValues: [STANDARD, STANDARD_IA, INTELLIGENT_TIERING]
+  CreateDynamoDB:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+
+Conditions:
+  UseDynamoDB: !Equals [!Ref CreateDynamoDB, 'true']
+
+Resources:
+  # S3 Bucket
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AppName}-storage-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Name
+          Value: !Sub '${AppName}-storage'
+        - Key: ManagedBy
+          Value: AutoCloud-Architect
+
+  # DynamoDB Table
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Condition: UseDynamoDB
+    Properties:
+      TableName: !Sub '${AppName}-table'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: created_at-index
+          KeySchema:
+            - AttributeName: created_at
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Name
+          Value: !Sub '${AppName}-table'
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub '${AppName}-S3BucketName'
+
+  S3BucketArn:
+    Value: !GetAtt S3Bucket.Arn
+    Export:
+      Name: !Sub '${AppName}-S3BucketArn'
+
+  DynamoDBTableName:
+    Condition: UseDynamoDB
+    Value: !Ref DynamoDBTable
+
+  DynamoDBTableArn:
+    Condition: UseDynamoDB
+    Value: !GetAtt DynamoDBTable.Arn
