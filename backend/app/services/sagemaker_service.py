@@ -33,7 +33,12 @@ class SageMakerService:
     
     def __init__(self):
         """Initialize SageMaker client."""
-        self.use_mock = not settings.aws_access_key_id
+        # Use rule-based engine unless a real SageMaker endpoint is explicitly configured
+        self.use_mock = (
+            not settings.aws_access_key_id or
+            not settings.sagemaker_endpoint_name or
+            settings.sagemaker_endpoint_name == "autocloud-recommender"  # default placeholder
+        )
         
         if not self.use_mock:
             self.client = boto3.client(
@@ -43,7 +48,7 @@ class SageMakerService:
                 aws_secret_access_key=settings.aws_secret_access_key
             )
         
-        logger.info(f"SageMaker service initialized (mock={self.use_mock})")
+        logger.info(f"SageMaker service initialized (using_local_engine={self.use_mock})")
     
     async def get_recommendations(
         self, 
@@ -52,16 +57,18 @@ class SageMakerService:
         """
         Get infrastructure recommendations based on requirements.
         
-        Args:
-            requirements: User's application requirements
-            
-        Returns:
-            RecommendationOutput with suggested AWS architecture
+        Uses rule-based engine by default. Only calls SageMaker if
+        a custom endpoint has been configured.
         """
         if self.use_mock:
             return self._get_mock_recommendations(requirements)
         
-        return await self._invoke_endpoint(requirements)
+        # Try real SageMaker, fall back to rule-based if it fails
+        try:
+            return await self._invoke_endpoint(requirements)
+        except Exception as e:
+            logger.warning(f"SageMaker endpoint failed, using local engine: {str(e)}")
+            return self._get_mock_recommendations(requirements)
     
     async def _invoke_endpoint(
         self, 

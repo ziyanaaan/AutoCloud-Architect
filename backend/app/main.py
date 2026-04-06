@@ -1,6 +1,16 @@
 """
 AutoCloud Architect - FastAPI Main Application
 """
+# Fix SSL certificates — use certifi's CA bundle instead of potentially
+# outdated system certificates (critical on Python 3.14 / Windows)
+import os
+try:
+    import certifi
+    os.environ.setdefault('AWS_CA_BUNDLE', certifi.where())
+    os.environ.setdefault('SSL_CERT_FILE', certifi.where())
+except ImportError:
+    pass
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager

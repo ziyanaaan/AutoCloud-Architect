@@ -113,7 +113,8 @@ class DeploymentRequest(BaseModel):
     job_id: str = Field(..., description="Unique deployment job ID")
     requirements: dict = Field(..., description="Original requirements")
     recommendations: RecommendationOutput = Field(..., description="Approved recommendations")
-    code_url: Optional[str] = Field(None, description="URL or path to application code")
+    code_url: Optional[str] = Field(None, description="URL or path to application code (S3 URL or repo URL)")
+    repo_url: Optional[str] = Field(None, description="GitHub/GitLab repository URL")
 
 
 class AWSResource(BaseModel):

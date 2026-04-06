@@ -101,6 +101,12 @@ class RequirementsInput(BaseModel):
         default=False,
         description="Whether to use CloudFront CDN"
     )
+    
+    # Code Source
+    repo_url: Optional[str] = Field(
+        None,
+        description="GitHub/GitLab repository URL for the application code"
+    )
 
     class Config:
         json_schema_extra = {
@@ -115,6 +121,7 @@ class RequirementsInput(BaseModel):
                 "requires_database": True,
                 "requires_load_balancer": True,
                 "requires_auto_scaling": False,
-                "requires_cdn": False
+                "requires_cdn": False,
+                "repo_url": "https://github.com/username/repo"
             }
         }
